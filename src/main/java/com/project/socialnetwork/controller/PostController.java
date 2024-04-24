@@ -1,6 +1,7 @@
 package com.project.socialnetwork.controller;
 
 import com.project.socialnetwork.dto.PostDTO;
+import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.response.ListPostResponse;
 import com.project.socialnetwork.response.MessageResponse;
 import com.project.socialnetwork.response.PostDetailResponse;
@@ -21,8 +22,7 @@ public class PostController {
 
     @PostMapping("")
     public ResponseEntity<?> createPost(@RequestBody()PostDTO postDTO,
-                                        @RequestHeader("Authorization")String token)
-    {
+                                        @RequestHeader("Authorization")String token) throws ParserTokenException {
         token = token.substring(7);
         PostDetailResponse postDetailResponse = postService.createPost(postDTO,token);
         return ResponseEntity.ok().body(postDetailResponse);
@@ -67,7 +67,7 @@ public class PostController {
             @RequestHeader("Authorization") String token,
             @RequestParam(defaultValue = "0")int page,
             @RequestParam(defaultValue = "30") int limit
-    ){
+    ) throws ParserTokenException {
         token = token.substring(7);
         PageRequest pageRequest =PageRequest.of(page,limit,
                 Sort.by("createdTime").descending());
@@ -76,13 +76,11 @@ public class PostController {
     }
 
 
-
-
     @DeleteMapping("/{portId}")
     public ResponseEntity<?> deletePost(
             @PathVariable("portId")Long id,
             @RequestHeader("Authorization") String token
-    ){
+    ) throws ParserTokenException {
         postService.deletePost(id,token);
         return ResponseEntity.ok().body(MessageResponse.builder().message("Xóa post thành công!"));
     }

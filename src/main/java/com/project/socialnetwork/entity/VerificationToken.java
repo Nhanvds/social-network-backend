@@ -26,5 +26,5 @@ public class VerificationToken {
     private Long userId;
 
     @Column(name = "expired_at")
-    private LocalDateTime expiredaAt;
+    private LocalDateTime expiredAt;
 }

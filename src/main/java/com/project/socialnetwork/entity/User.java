@@ -3,6 +3,7 @@ package com.project.socialnetwork.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -42,6 +43,9 @@ public class User {
     @Column(name = "last_login")
     private LocalDate lastLogin;
 
+    @Column(name = "created_at")
+    @CreationTimestamp
+    private LocalDate createdAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role",

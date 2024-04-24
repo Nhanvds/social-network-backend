@@ -28,4 +28,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     @Query("select u from User u where u.id in :ids")
     List<User> getUsersByIds(@Param("ids")List<Long> ids);
+
+    @Query("select u.id from User u where u.email like %:keyword% or u.userName like %:keyword%")
+    Page<Long> searchUserIds(@Param("keyword") String keyword,Pageable pageable);
 }

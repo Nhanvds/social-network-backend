@@ -5,6 +5,8 @@ import com.project.socialnetwork.dto.PostReactionDTO;
 import com.project.socialnetwork.entity.Post;
 import com.project.socialnetwork.entity.PostReaction;
 import com.project.socialnetwork.entity.User;
+import com.project.socialnetwork.enums.ErrorCode;
+import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.mapper.Mapper;
 import com.project.socialnetwork.repository.PostReactionRepository;
 import com.project.socialnetwork.repository.PostRepository;
@@ -40,37 +42,30 @@ public class PostReactionServiceImpl implements PostReactionService{
     }
 
     @Override
-    public PostReactionResponse createPostReaction(PostReactionDTO postReactionDTO, String token) {
-        try{
+    public PostReactionResponse createPostReaction(PostReactionDTO postReactionDTO, String token) throws ParserTokenException {
+
         Long userId = jwtUtils.getUserId(token);
-        User user = userRepository.getUserById(userId)
-                .orElseThrow(()->new RuntimeException("User không tồn tại!"));
+            User user = userRepository.getUserById(userId)
+                    .orElseThrow(()->new RuntimeException("User không tồn tại!"));
             Post post = postRepository.getPostById(postReactionDTO.getPostId())
                     .orElseThrow(()->new RuntimeException("Post không tồn tại!"));
-        PostReaction postReaction = postReactionRepository.save(
-                PostReaction.builder()
-                        .post(post)
-                        .user(user)
-                        .hasLiked(postReactionDTO.getHasLiked())
-                        .build());
-        return PostReactionResponse.builder()
-                .id(postReaction.getId())
-                .user(Mapper.mapToUserCard(postReaction.getUser()))
-                .hasLiked(postReaction.getHasLiked())
-                .build();
-
-        }catch (ParseException e){
-            throw new RuntimeException(e);
-        }
+            PostReaction postReaction = postReactionRepository.save(
+                    PostReaction.builder()
+                            .post(post)
+                            .user(user)
+                            .hasLiked(postReactionDTO.getHasLiked())
+                            .build());
+            return PostReactionResponse.builder()
+                    .id(postReaction.getId())
+                    .user(Mapper.mapToUserCard(postReaction.getUser()))
+                    .hasLiked(postReaction.getHasLiked())
+                    .build();
 
 
     }
 
     @Override
-    public void deletePostReaction(Long postReactionId, String token) {
-        try {
-
-
+    public void deletePostReaction(Long postReactionId, String token) throws ParserTokenException {
             Long userId = jwtUtils.getUserId(token);
             PostReaction postReaction = postReactionRepository.findById(postReactionId)
                     .orElseThrow(() -> new RuntimeException("Dislike lỗi"));
@@ -78,9 +73,6 @@ public class PostReactionServiceImpl implements PostReactionService{
                 throw new RuntimeException("Dislike lỗi");
             }
             postReactionRepository.deleteById(postReaction.getId());
-        }catch (ParseException e){
-            throw new RuntimeException(e);
-        }
 
     }
 }

@@ -2,6 +2,7 @@ package com.project.socialnetwork.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 
@@ -25,6 +26,10 @@ public class UserFriend {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "second_user_id")
     private User secondUser;
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDate createdAt;
 
     @Column(name="has_accepted")
     private Boolean hasAccepted;

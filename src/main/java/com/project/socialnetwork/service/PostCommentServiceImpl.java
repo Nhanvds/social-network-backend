@@ -5,6 +5,7 @@ import com.project.socialnetwork.dto.PostCommentDTO;
 import com.project.socialnetwork.entity.Post;
 import com.project.socialnetwork.entity.PostComment;
 import com.project.socialnetwork.entity.User;
+import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.mapper.Mapper;
 import com.project.socialnetwork.repository.PostCommentRepository;
 import com.project.socialnetwork.repository.PostRepository;
@@ -15,8 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.text.ParseException;
 import java.util.List;
 
 @Service
@@ -41,8 +40,8 @@ public class PostCommentServiceImpl implements PostCommentService{
     }
 
     @Override
-    public PostCommentResponse createPostComment(PostCommentDTO postCommentDTO, String token) {
-        try{
+    public PostCommentResponse createPostComment(PostCommentDTO postCommentDTO, String token) throws ParserTokenException {
+
             Long userId = jwtUtils.getUserId(token);
             User user = userRepository.getUserById(userId)
                     .orElseThrow(()->new RuntimeException("Người dùng không tồn tại!"));
@@ -59,14 +58,11 @@ public class PostCommentServiceImpl implements PostCommentService{
                     .content(addedPostComment.getContent())
                     .user(Mapper.mapToUserCard(addedPostComment.getUser()))
                     .build();
-        }catch (ParseException e){
-            throw new RuntimeException(e);
-        }
+
     }
 
     @Override
-    public void deletePostComment(Long id, String token) {
-        try {
+    public void deletePostComment(Long id, String token) throws ParserTokenException {
             Long userId = jwtUtils.getUserId(token);
             User user = userRepository.getUserById(userId)
                     .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại!"));
@@ -76,8 +72,6 @@ public class PostCommentServiceImpl implements PostCommentService{
                 throw new RuntimeException("Không thể xóa comment của người khác!");
             }
             postCommentRepository.deleteById(id);
-        }catch (ParseException e){
-            throw new RuntimeException(e);
-        }
+
     }
 }

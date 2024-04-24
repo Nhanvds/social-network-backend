@@ -2,6 +2,7 @@ package com.project.socialnetwork.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 
@@ -25,6 +26,7 @@ public class PostComment {
     private User user;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private LocalDate createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)

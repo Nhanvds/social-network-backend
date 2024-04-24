@@ -1,8 +1,12 @@
 package com.project.socialnetwork.exception;
 
-public class InvalidCredentialsException extends Exception{
+import com.project.socialnetwork.enums.ErrorCode;
+import lombok.Getter;
 
-    public InvalidCredentialsException(String message){
-        super(message);
+@Getter
+public class InvalidCredentialsException extends Exception{
+    private ErrorCode errorCode;
+    public InvalidCredentialsException(ErrorCode errorCode){
+        this.errorCode=errorCode;
     }
 }

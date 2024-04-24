@@ -2,6 +2,8 @@ package com.project.socialnetwork.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -25,9 +27,11 @@ public class Post {
     @JoinColumn(name = "post_privacy_status_id")
     private PostPrivacyStatus postPrivacyStatus;
 
+    @CreationTimestamp
     @Column(name = "created_time",nullable = false)
     private LocalDate createdTime;
 
+    @UpdateTimestamp
     @Column(name = "updated_time",nullable = false)
     private LocalDate updatedTime;
 

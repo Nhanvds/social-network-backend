@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request->
                         request.requestMatchers(HttpMethod.GET,prefix+"/users").permitAll()
                                 .requestMatchers(HttpMethod.GET,prefix+"/users/send").permitAll()
-                                .requestMatchers(HttpMethod.POST,prefix+"/users").permitAll()
+                                .requestMatchers(HttpMethod.POST,prefix+"/users**").permitAll()
                                 .anyRequest().permitAll());
 //                                .anyRequest().authenticated());
         http.oauth2ResourceServer(oauth2->

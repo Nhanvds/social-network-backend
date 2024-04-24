@@ -1,6 +1,7 @@
 package com.project.socialnetwork.controller;
 
 import com.project.socialnetwork.dto.PostCommentDTO;
+import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.response.ListPostCommentResponse;
 import com.project.socialnetwork.response.MessageResponse;
 import com.project.socialnetwork.response.PostCommentResponse;
@@ -23,7 +24,7 @@ public class CommentController {
     public ResponseEntity<?> createPostComment(
             @RequestBody PostCommentDTO postCommentDTO,
             @RequestHeader("Authorization") String token
-            ){
+            ) throws ParserTokenException {
         token= token.substring(7);
         PostCommentResponse postCommentResponse = postCommentService.createPostComment(
                 postCommentDTO,token
@@ -35,7 +36,7 @@ public class CommentController {
     public ResponseEntity<?> deletePostComment(
             @PathVariable("comment_id") Long id,
             @RequestHeader("Authorization") String token
-    ){
+    ) throws ParserTokenException {
         token= token.substring(7);
         postCommentService.deletePostComment(id,token);
         return ResponseEntity.ok().body(MessageResponse.builder()

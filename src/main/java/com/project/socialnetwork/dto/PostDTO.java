@@ -21,11 +21,11 @@ public class PostDTO {
     @JsonProperty("privacy_id")
     private Long postPrivacyStatusId;
 
-    @JsonProperty("created_at")
-    private LocalDate createdTime;
+//    @JsonProperty("created_at")
+//    private LocalDate createdTime;
 
-    @JsonProperty("updated_at")
-    private LocalDate updatedTime;
+//    @JsonProperty("updated_at")
+//    private LocalDate updatedTime;
 
     @JsonProperty("url_post_images")
     private Set<String> urlPostImages;

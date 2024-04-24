@@ -3,6 +3,8 @@ package com.project.socialnetwork.service;
 import com.project.socialnetwork.components.JwtUtils;
 import com.project.socialnetwork.entity.User;
 import com.project.socialnetwork.entity.UserFriend;
+import com.project.socialnetwork.enums.ErrorCode;
+import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.repository.UserFriendRepository;
 import com.project.socialnetwork.repository.UserRepository;
 import com.project.socialnetwork.response.ListFriendResponse;
@@ -11,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.util.List;
 
 @Service
@@ -22,7 +23,7 @@ public class UserFriendServiceImpl implements UserFriendService{
     private final JwtUtils jwtUtils;
 
     @Override
-    public UserFriend addUserFriend(Long userFriendId, String token) {
+    public UserFriend addUserFriend(Long userFriendId, String token) throws ParserTokenException {
        UserFriend userFriend = getUserFriend(userFriendId,token);
        UserFriend addedUserFriend = userFriendRepository.save(userFriend);
        return addedUserFriend;
@@ -38,14 +39,14 @@ public class UserFriendServiceImpl implements UserFriendService{
     }
 
     @Override
-    public void deleteUserFriend(Long userFriendId, String token) {
+    public void deleteUserFriend(Long userFriendId, String token) throws ParserTokenException {
        UserFriend userFriend = getUserFriend(userFriendId,token);
        userFriendRepository.delete(userFriend);
     }
 
     @Override
-    public ListFriendResponse getFriends(String keyword,Boolean hasAccepted, Pageable pageable, String token) {
-        try {
+    public ListFriendResponse getFriends(String keyword,Boolean hasAccepted, Pageable pageable, String token) throws ParserTokenException {
+
             Long userId = jwtUtils.getUserId(token);
             Page<Long> friendIds = userFriendRepository.getUserFriendIds(userId,keyword,hasAccepted,pageable);
             List<UserFriend> friendList = userFriendRepository.getUserFriends(friendIds.toList());
@@ -53,15 +54,13 @@ public class UserFriendServiceImpl implements UserFriendService{
                     .total(friendIds.getTotalElements())
                     .friends(friendList)
                     .build();
-        }catch (ParseException e){
-            throw new RuntimeException(e);
-        }
+
     }
 
 
 
-    private UserFriend getUserFriend(Long userFriendId, String token){
-        try{
+    private UserFriend getUserFriend(Long userFriendId, String token) throws ParserTokenException {
+
             Long myUserId = jwtUtils.getUserId(token);
             User myUser = userRepository.getUserById(myUserId)
                     .orElseThrow(()->new RuntimeException());
@@ -72,9 +71,7 @@ public class UserFriendServiceImpl implements UserFriendService{
                     .secondUser(friendUser)
                     .build();
             return userFriend;
-        }catch (ParseException e){
-            throw new RuntimeException(e);
-        }
+
     }
 
 

@@ -33,7 +33,7 @@ public class VerificationTokenServiceImpl implements VerificationTokenService{
         return verificationTokenRepository.save(VerificationToken.builder()
                         .token(uuid.toString())
                         .userId(userId)
-                        .expiredaAt(LocalDateTime.now().plusHours(expiration))
+                        .expiredAt(LocalDateTime.now().plusHours(expiration))
                 .build());
     }
 }

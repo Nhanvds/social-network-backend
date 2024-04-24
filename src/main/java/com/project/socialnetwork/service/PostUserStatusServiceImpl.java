@@ -4,6 +4,8 @@ import com.project.socialnetwork.components.JwtUtils;
 import com.project.socialnetwork.entity.Post;
 import com.project.socialnetwork.entity.PostUserStatus;
 import com.project.socialnetwork.entity.User;
+import com.project.socialnetwork.enums.ErrorCode;
+import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.repository.PostUserStatusRepository;
 import com.project.socialnetwork.repository.UserFriendRepository;
 import com.project.socialnetwork.repository.UserRepository;
@@ -22,8 +24,8 @@ public class PostUserStatusServiceImpl implements PostUserStatusService{
     private final UserFriendRepository userFriendRepository;
     private final PostUserStatusRepository postUserStatusRepository;
     @Override
-    public void createPostUserStatus(String token, Post post) {
-        try{
+    public void createPostUserStatus(String token, Post post) throws ParserTokenException {
+
             Long userId = jwtUtils.getUserId(token);
             List<Long> userFriendIds = userFriendRepository.getAllUserFriendIds(userId);
             List<PostUserStatus> postUserStatuses = new ArrayList<>();
@@ -36,8 +38,6 @@ public class PostUserStatusServiceImpl implements PostUserStatusService{
                 postUserStatuses.add(postUserStatus);
             }
             postUserStatusRepository.saveAll(postUserStatuses);
-        }catch (ParseException e){
-            throw new RuntimeException(e);
-        }
+
     }
 }
