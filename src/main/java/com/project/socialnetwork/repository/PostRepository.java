@@ -26,10 +26,16 @@ public interface PostRepository extends JpaRepository<Post,Long> {
 """)
     Page<Long> getMyPostIds(@Param("id") Long id,Pageable pageable);
 
+//    @Query("""
+//        select  p.id from Post p
+//        where p.user.id=:id and p.postPrivacyStatus.name="public"
+//""")
+//    Page<Long> getPostPublicIds(@Param("id") Long id,Pageable pageable);
+
 
     @Query("""
-    select p from Post p join fetch p.postImages join fetch p.postReactions
+    select p from Post p left join fetch p.postImages left join fetch p.postReactions
     where p.id=:id
 """)
-    Optional<Post> getPostById(Long id);
+    Optional<Post> getPostById(@Param("id") Long id);
 }

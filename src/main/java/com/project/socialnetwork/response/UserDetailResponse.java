@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -31,7 +32,7 @@ public class UserDetailResponse {
 
     private Boolean isLocked;
 
-    private LocalDate lastLogin;
+    private LocalDateTime lastLogin;
 
     private Set<Role> roles;
 }

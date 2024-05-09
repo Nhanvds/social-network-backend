@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -41,11 +42,11 @@ public class User {
 
 
     @Column(name = "last_login")
-    private LocalDate lastLogin;
+    private LocalDateTime lastLogin;
 
     @Column(name = "created_at")
     @CreationTimestamp
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role",
@@ -53,13 +54,13 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
-    @ManyToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    @JoinTable(
-        name = "user_friends",
-        joinColumns = @JoinColumn(name = "first_user_id"),
-        inverseJoinColumns = @JoinColumn(name = "second_user_id")
-    )
-    private Set<User> userFriends;
+//    @ManyToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+//    @JoinTable(
+//        name = "user_friends",
+//        joinColumns = @JoinColumn(name = "first_user_id"),
+//        inverseJoinColumns = @JoinColumn(name = "second_user_id")
+//    )
+//    private Set<User> userFriends;
 
     @OneToMany(mappedBy = "user",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private Set<PostNotification> postNotifications;

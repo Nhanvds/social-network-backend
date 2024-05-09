@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -23,9 +24,9 @@ public class PostDetailResponse {
 
     private PostPrivacyStatus postPrivacyStatus;
 
-    private LocalDate createdTime;
+    private LocalDateTime createdTime;
 
-    private LocalDate updatedTime;
+    private LocalDateTime updatedTime;
 
 
     private UserCard user;

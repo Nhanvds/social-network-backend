@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -34,5 +35,5 @@ public class UserConversation {
     private Set<UserMessage> userMessages;
 
     @Column(name = "last_message_time")
-    private LocalDate lastMessageTime;
+    private LocalDateTime lastMessageTime;
 }

@@ -2,23 +2,23 @@ package com.project.socialnetwork.controller;
 
 
 import com.nimbusds.jose.JOSEException;
-import com.project.socialnetwork.dto.UserDTO;
+import com.project.socialnetwork.dto.UserDto;
+import com.project.socialnetwork.dto.filter.PageFilterDto;
+import com.project.socialnetwork.dto.filter.UserFilerDto;
 import com.project.socialnetwork.enums.ErrorCode;
 import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.response.SuccessCode;
 import com.project.socialnetwork.exception.InvalidCredentialsException;
 import com.project.socialnetwork.response.*;
 import com.project.socialnetwork.service.UserFriendService;
-import com.project.socialnetwork.service.UserServiceImpl;
+import com.project.socialnetwork.service.impl.UserServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
-import java.util.List;
 
 
 @RestController
@@ -38,7 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid UserDTO userDTO) throws InvalidCredentialsException, JOSEException, ParseException {
+    public ResponseEntity<?> login(@RequestBody @Valid UserDto userDTO) throws InvalidCredentialsException, JOSEException, ParseException {
         Token token = userService.login(userDTO);
         return ResponseEntity.ok().body(new ApiResponse<Token>(SuccessCode.LOGIN_SUCCESSFULLY, token));
     }
@@ -46,7 +46,7 @@ public class UserController {
     @GetMapping("")
     public ResponseEntity<?> getUserDetailByToken(
             @RequestHeader("Authorization") String token
-    ) throws  InvalidCredentialsException, ParserTokenException {
+    ) throws InvalidCredentialsException, ParserTokenException {
         UserDetailResponse userDetailResponse = userService.getUserDetailByToken(token);
         return ResponseEntity.ok().body(new ApiResponse<UserDetailResponse>(
                 SuccessCode.SUCCESSFULLY, userDetailResponse
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> createUser(@RequestBody @Valid UserDTO userDTO) throws InvalidCredentialsException {
+    public ResponseEntity<?> createUser(@RequestBody @Valid UserDto userDTO) throws InvalidCredentialsException {
         UserDetailResponse userDetailResponse = userService.createUser(userDTO);
         return ResponseEntity.ok().body(
                 new ApiResponse<UserDetailResponse>(SuccessCode.CREATE_ACCOUNT_SUCCESSFULLY, userDetailResponse)
@@ -77,38 +77,14 @@ public class UserController {
         }
     }
 
-    /**
-     * @param keywork   : tìm kiếm theo tên hoặc email
-     * @param hasAccept == true: danh sách bạn bè; ==false danh sách lời mời kết bạn
-     *                  Sắp xếp mặc định
-     */
-    @GetMapping("friends")
-    public ResponseEntity<?> getListFriends(
-            @RequestHeader("Authorization") String token,
-            @RequestParam(name = "keywork", defaultValue = "") String keywork,
-            @RequestParam(name = "hasAccept", defaultValue = "true") boolean hasAccept,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "limit", defaultValue = "30") int limit
-    ) throws ParserTokenException {
-        token = token.substring(7);
-        PageRequest pageRequest = PageRequest.of(page, limit);
-        ListFriendResponse listFriendResponse = userFriendService
-                .getFriends(keywork, hasAccept, pageRequest, token);
-        return ResponseEntity.ok().body(new ApiResponse<ListFriendResponse>(
-                SuccessCode.SUCCESSFULLY, listFriendResponse
-        ));
-    }
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     public ResponseEntity<?> searchUser(
-            @RequestParam(name = "keyword", defaultValue = "") String keyword,
-            @RequestParam(name = "page" ,defaultValue = "0") int page,
-            @RequestParam(name= "limit", defaultValue = "30") int limit
-
-    ){
-        PageRequest pageRequest = PageRequest.of(page,limit);
-        List<UserCard> userCardList = userService.findUser(keyword,pageRequest);
-        return ResponseEntity.ok().body(new ApiResponse<List<UserCard>>("ok",userCardList));
+            @RequestHeader("Authorization")String token,
+            @RequestBody PageFilterDto<UserFilerDto> input
+    ) throws ParserTokenException {
+        return ResponseEntity.ok().body(
+               new ApiResponse< PageImpl<UserCard>>("ok",userService.searchUser(input,token)));
     }
 
     @PostMapping("/friend")
@@ -116,7 +92,7 @@ public class UserController {
             @RequestHeader("Authorization") String token,
             @RequestParam("userFriendId") Long userFriendId
     ) throws InvalidCredentialsException, ParserTokenException {
-        userService.sendFriendRequest(token,userFriendId);
+        userService.sendFriendRequest(token, userFriendId);
         return ResponseEntity.ok().body(new ApiResponse<>("Gửi lời mời kết bạn thành công"));
     }
 
@@ -127,4 +103,15 @@ public class UserController {
         userService.acceptFriendRequest(friendRequestId);
         return ResponseEntity.ok().body(new ApiResponse<>("Xác nhận lời mời kết bạn thành công"));
     }
+    @DeleteMapping("/friend/{id}")
+    public ResponseEntity<?> deleteFriendRequest(
+            @PathVariable("id") Long id,
+            @RequestHeader("Authorization") String token
+    ) throws ParserTokenException {
+        userFriendService.deleteUserFriend(id,token);
+        return ResponseEntity.ok()
+                .body(new ApiResponse("Xóa lời mời kết bạn thành công"));
+    }
+
+
 }

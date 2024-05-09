@@ -1,14 +1,16 @@
-package com.project.socialnetwork.service;
+package com.project.socialnetwork.service.impl;
 
 import com.project.socialnetwork.components.JwtUtils;
 import com.project.socialnetwork.entity.Post;
 import com.project.socialnetwork.entity.PostUserStatus;
 import com.project.socialnetwork.entity.User;
+import com.project.socialnetwork.entity.UserFriend;
 import com.project.socialnetwork.enums.ErrorCode;
 import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.repository.PostUserStatusRepository;
 import com.project.socialnetwork.repository.UserFriendRepository;
 import com.project.socialnetwork.repository.UserRepository;
+import com.project.socialnetwork.service.PostUserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PostUserStatusServiceImpl implements PostUserStatusService{
+public class PostUserStatusServiceImpl implements PostUserStatusService {
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
     private final UserFriendRepository userFriendRepository;
@@ -27,13 +29,18 @@ public class PostUserStatusServiceImpl implements PostUserStatusService{
     public void createPostUserStatus(String token, Post post) throws ParserTokenException {
 
             Long userId = jwtUtils.getUserId(token);
-            List<Long> userFriendIds = userFriendRepository.getAllUserFriendIds(userId);
             List<PostUserStatus> postUserStatuses = new ArrayList<>();
-            List<User> userFriends = userRepository.getUsersByIds(userFriendIds);
-            PostUserStatus postUserStatus=new PostUserStatus();
-            for(User user:userFriends){
+            List<Long> userFriendIds = userFriendRepository.getAllUserFriendIds(userId);
+            List<UserFriend> userFriends = userFriendRepository.getUserFriends(userFriendIds);
+
+            for(UserFriend userFriend:userFriends){
+                PostUserStatus postUserStatus=new PostUserStatus();
                 postUserStatus.setPost(post);
-                postUserStatus.setUser(user);
+                if (userFriend.getFirstUser().getId() == userId) {
+                    postUserStatus.setUser(userFriend.getSecondUser());
+                } else {
+                    postUserStatus.setUser(userFriend.getFirstUser());
+                }
                 postUserStatus.setHasSeen(false);
                 postUserStatuses.add(postUserStatus);
             }

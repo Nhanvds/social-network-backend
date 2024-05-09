@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -29,11 +29,11 @@ public class Post {
 
     @CreationTimestamp
     @Column(name = "created_time",nullable = false)
-    private LocalDate createdTime;
+    private LocalDateTime createdTime;
 
     @UpdateTimestamp
     @Column(name = "updated_time",nullable = false)
-    private LocalDate updatedTime;
+    private LocalDateTime updatedTime;
 
     @Column(name = "is_locked",nullable = false)
     private Boolean isLocked;

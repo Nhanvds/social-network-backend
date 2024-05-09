@@ -1,17 +1,17 @@
 package com.project.socialnetwork.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Entity
 @Table(name = "post_notifications")
 public class PostNotification {
@@ -32,7 +32,8 @@ public class PostNotification {
     private String content;
 
     @Column(name="sended_at")
-    private LocalDate sendedAt;
+    @CreationTimestamp
+    private LocalDateTime sendedAt;
 
     // hasRead: true is user has read the notifications, else hasn't
     @Column(name="has_read")

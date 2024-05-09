@@ -1,9 +1,11 @@
-package com.project.socialnetwork.service;
+package com.project.socialnetwork.service.impl;
 
 import com.nimbusds.jose.JOSEException;
 import com.project.socialnetwork.components.JwtCreate;
 import com.project.socialnetwork.components.JwtUtils;
-import com.project.socialnetwork.dto.UserDTO;
+import com.project.socialnetwork.dto.UserDto;
+import com.project.socialnetwork.dto.filter.PageFilterDto;
+import com.project.socialnetwork.dto.filter.UserFilerDto;
 import com.project.socialnetwork.entity.Role;
 import com.project.socialnetwork.entity.User;
 import com.project.socialnetwork.entity.UserFriend;
@@ -15,21 +17,22 @@ import com.project.socialnetwork.mapper.Mapper;
 import com.project.socialnetwork.repository.RoleRepository;
 import com.project.socialnetwork.repository.UserFriendRepository;
 import com.project.socialnetwork.repository.UserRepository;
+import com.project.socialnetwork.repository.custom.UserFilterRepository;
 import com.project.socialnetwork.response.Token;
 import com.project.socialnetwork.response.UserCard;
 import com.project.socialnetwork.response.UserDetailResponse;
+import com.project.socialnetwork.service.UserService;
+import com.project.socialnetwork.service.VerificationTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -37,6 +40,7 @@ import java.util.Set;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserFilterRepository userFilterRepository;
     private final UserFriendRepository userFriendRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -46,7 +50,7 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
 
     @Override
-    public UserDetailResponse createUser(UserDTO userDTO) throws InvalidCredentialsException {
+    public UserDetailResponse createUser(UserDto userDTO) throws InvalidCredentialsException {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new InvalidCredentialsException(ErrorCode.EMAIL_EXISTED);
         }
@@ -64,7 +68,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Token login(UserDTO userDTO) throws InvalidCredentialsException, JOSEException {
+    public Token login(UserDto userDTO) throws InvalidCredentialsException, JOSEException {
         User user = userRepository.getUserByEmail(userDTO.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.EMAIL_PASSWORD_WRONG));
         String password = userDTO.getPassword();
@@ -77,7 +81,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean verifyUser(String verificationToken, Long userId) throws InvalidCredentialsException{
+    public boolean verifyUser(String verificationToken, Long userId) throws InvalidCredentialsException {
         User user = userRepository.getUserById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
 //        String message = new String("Xác thực tài khoản thất bại!");
@@ -101,7 +105,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean sendEmail(String email) throws InvalidCredentialsException {
         User user = userRepository.getUserByEmail(email)
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED) );
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         Long userId = user.getId();
         verificationTokenService.deleteAllTokensByUserId(userId);//Xóa hết mã cũ
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(userId);
@@ -119,21 +123,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserCard> findUser(String keyword, Pageable pageable) {
-        Page<Long> ids = userRepository.searchUserIds(keyword,pageable);
-        List<User> userList = userRepository.getUsersByIds(ids.toList());
-        List<UserCard> userCardList = userList.stream()
-                .map(user -> Mapper.mapToUserCard(user)).toList();
-        return userCardList;
+    public PageImpl<UserCard> searchUser(PageFilterDto<UserFilerDto> input,String token) throws ParserTokenException {
+        Long userId = jwtUtils.getUserId(token);
+        Pageable pageable;
+        if (input.getPageSize() == null || input.getPageNumber() == null
+                || input.getPageNumber() < 0 || input.getPageSize() <= 0) {
+            pageable = Pageable.unpaged();
+        } else {
+            pageable = PageRequest.of(input.getPageNumber(), input.getPageSize());
+        }
+        return userFilterRepository.searchUser(input, pageable,userId);
     }
+
 
     @Override
     public void sendFriendRequest(String token, Long userFriendId) throws ParserTokenException, InvalidCredentialsException {
         Long userId = jwtUtils.getUserId(token);
         User user = userRepository.getUserById(userId)
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED) );
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         User friend = userRepository.getUserById(userFriendId)
-                .orElseThrow(()->new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED) );
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         UserFriend userFriend = UserFriend.builder()
                 .firstUser(user)
                 .secondUser(friend)
@@ -145,7 +154,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void acceptFriendRequest(Long friendRequestId) throws InvalidCredentialsException {
         UserFriend userFriend = userFriendRepository.getUserFriendById(friendRequestId)
-                .orElseThrow(()->new InvalidCredentialsException(ErrorCode.FRIEND_REQUEST_NOT_EXISTED) );
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.FRIEND_REQUEST_NOT_EXISTED));
         userFriend.setHasAccepted(true);
         userFriendRepository.save(userFriend);
     }

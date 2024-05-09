@@ -1,17 +1,16 @@
 package com.project.socialnetwork.mapper;
 
-import com.project.socialnetwork.dto.PostCommentDTO;
-import com.project.socialnetwork.dto.UserDTO;
-import com.project.socialnetwork.entity.Post;
-import com.project.socialnetwork.entity.PostComment;
-import com.project.socialnetwork.entity.PostReaction;
-import com.project.socialnetwork.entity.User;
+import com.project.socialnetwork.dto.NotificationDto;
+import com.project.socialnetwork.dto.UserDto;
+import com.project.socialnetwork.entity.*;
 import com.project.socialnetwork.response.*;
+
+import java.util.stream.Collectors;
 
 public class Mapper {
 
     //map from DTO to Entity
-    public static User mapToUser(UserDTO userDTO) {
+    public static User mapToUser(UserDto userDTO) {
         return User.builder()
                 .email(userDTO.getEmail())
                 .userName(userDTO.getUsername())
@@ -47,12 +46,15 @@ public class Mapper {
         return PostResponse.builder()
                 .id(post.getId())
                 .content(post.getContent())
-                .postPrivacyStatus(post.getPostPrivacyStatus())
+                .postPrivacyStatus(post.getPostPrivacyStatus().getName())
                 .createdTime(post.getCreatedTime())
                 .updatedTime(post.getUpdatedTime())
-                .postImages(post.getPostImages())
-                .user(mapToUserCard(post.getUser()))
-                .postReactions(post.getPostReactions())
+                .postImages(post.getPostImages().stream().map(image -> image.getUrlImage()).collect(Collectors.toList()))
+                .userId(post.getUser().getId())
+                .urlAvatar(post.getUser().getUrlAvatar())
+                .username(post.getUser().getUserName())
+                .likedReactions(post.getPostReactions().stream().filter(postReaction -> postReaction.getHasLiked() == true).collect(Collectors.toSet()).size())
+                .dislikedReactions(post.getPostReactions().stream().filter(postReaction -> postReaction.getHasLiked() == false).collect(Collectors.toSet()).size())
                 .build();
     }
 
@@ -72,6 +74,17 @@ public class Mapper {
                 .user(mapToUserCard(postReaction.getUser()))
                 .build();
     }
+
+    public static NotificationResponse mapToNotificationResponse(PostNotification notification){
+        return NotificationResponse.builder()
+                .id(notification.getId())
+                .content(notification.getContent())
+                .postId(notification.getPost().getId())
+                .sendedAt(notification.getSendedAt())
+                .hasRead(notification.getHasRead())
+                .build();
+    }
+
 
 
 }

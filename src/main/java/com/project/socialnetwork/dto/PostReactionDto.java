@@ -6,20 +6,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
-@Builder
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostCommentDTO {
+public class PostReactionDto {
 
-    private String content;
+    private Boolean hasLiked;
 
-    @JsonProperty("created_at")
-    private LocalDate createdAt;
-
-
-    @JsonProperty("post_id")
     private Long postId;
 }

@@ -1,20 +1,25 @@
-package com.project.socialnetwork.service;
+package com.project.socialnetwork.service.impl;
 
 import com.project.socialnetwork.components.JwtUtils;
-import com.project.socialnetwork.dto.PostDTO;
+import com.project.socialnetwork.dto.PostDto;
+import com.project.socialnetwork.dto.filter.PageFilterDto;
+import com.project.socialnetwork.dto.filter.PostFilterDto;
 import com.project.socialnetwork.entity.*;
 import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.mapper.Mapper;
 import com.project.socialnetwork.repository.*;
-import com.project.socialnetwork.response.ListPostReactionsResponse;
+import com.project.socialnetwork.repository.custom.PostFilterRepository;
 import com.project.socialnetwork.response.ListPostResponse;
 import com.project.socialnetwork.response.PostDetailResponse;
+import com.project.socialnetwork.response.PostResponse;
+import com.project.socialnetwork.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,48 +32,13 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostReactionRepository postReactionRepository;
     private final UserRepository userRepository;
+    private final UserFriendRepository userFriendRepository;
     private final PostPrivacyStatusRepository postPrivacyStatusRepository;
     private final PostImageRepository postImageRepository;
+    private final PostFilterRepository postFilterRepository;
     private final JwtUtils jwtUtils;
 
-    /**
-     * @param token
-     * @param pageable
-     * @return danh sách bài viết của bạn bè mà chưa tương tác
-     */
-    @Override
-    public ListPostResponse getListPosts(String token, Pageable pageable) {
-        try {
-            Long userId = jwtUtils.getUserId(token);
-            String privacyPublic = PostPrivacyStatus.PRIVACY_PUBLIC;
-            Page<Long> ids = postUserStatusRepository.getNewsFeedIdsByUserId(userId, privacyPublic, pageable);
-            return convertToListPostResponse(ids);
-        } catch (ParserTokenException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-
-    @Override
-    public ListPostResponse getMyListPosts(String token, Pageable pageable) {
-        try {
-            Long userId = jwtUtils.getUserId(token);
-            Page<Long> ids = postRepository.getMyPostIds(userId, pageable);
-            return convertToListPostResponse(ids);
-
-        } catch (ParserTokenException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public ListPostResponse getListPostsLiked(String token, Pageable pageable) throws ParserTokenException {
-
-        Long userId = jwtUtils.getUserId(token);
-        Page<Long> ids = postReactionRepository.getPostIdsLiked(userId, pageable);
-        return convertToListPostResponse(ids);
-
-    }
 
     @Override
     public PostDetailResponse getPostDetailResponse(Long portId) {
@@ -86,7 +56,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDetailResponse createPost(PostDTO postDTO, String token) throws ParserTokenException {
+    public PostDetailResponse createPost(PostDto postDTO, String token) throws ParserTokenException {
 
         Long userId = jwtUtils.getUserId(token);
         User user = userRepository.getUserById(userId)
@@ -103,14 +73,18 @@ public class PostServiceImpl implements PostService {
                 .isLocked(false)
                 .build();
         Post addedPost = postRepository.save(post);
-        List<PostImage> postImages = new ArrayList<>();
-        postDTO.getUrlPostImages().forEach(url ->
-                postImages.add(PostImage.builder()
-                        .urlImage(url)
-                        .post(addedPost)
-                        .build()));
-        List<PostImage> addedPostImages = postImageRepository.saveAll(postImages);
-        addedPost.setPostImages(addedPostImages.stream().collect(Collectors.toSet()));
+        if(postDTO.getUrlPostImages()!=null){
+            List<PostImage> postImages = new ArrayList<>();
+            postDTO.getUrlPostImages().forEach(url ->
+                    postImages.add(PostImage.builder()
+                            .urlImage(url)
+                            .post(addedPost)
+                            .build()));
+
+            List<PostImage> addedPostImages = postImageRepository.saveAll(postImages);
+            addedPost.setPostImages(addedPostImages.stream().collect(Collectors.toSet()));
+        }
+
         if(addedPost.getPostPrivacyStatus().getName().equals(PostPrivacyStatus.PRIVACY_PUBLIC)){
             postUserStatusService.createPostUserStatus(token,addedPost);
         }
@@ -131,13 +105,13 @@ public class PostServiceImpl implements PostService {
      * @return
      */
     @Override
-    public PostDetailResponse updatePost(Long postId, String content, long postPrivacyStatusId) {
+    public PostDetailResponse updatePost(Long postId,PostDto postDto) {
         Post existedPost = postRepository.getPostById(postId)
                 .orElseThrow(()-> new RuntimeException("Bài viết không ồn tại"));
         PostPrivacyStatus postPrivacyStatus = postPrivacyStatusRepository
-                .getPostPrivacyStatusById(postPrivacyStatusId)
+                .getPostPrivacyStatusById(postDto.getPostPrivacyStatusId())
                 .orElseThrow(()->new RuntimeException("Chế độ bài viết không hợp lệ"));
-        existedPost.setContent(content);
+        existedPost.setContent(postDto.getContent());
         existedPost.setPostPrivacyStatus(postPrivacyStatus);
 
         Post updatedPost =  postRepository.save(existedPost);
@@ -166,6 +140,20 @@ public class PostServiceImpl implements PostService {
             postRepository.deleteById(id);
 
     }
+
+    @Override
+    public PageImpl<PostResponse> searchPost(PageFilterDto<PostFilterDto> input, String token) throws ParserTokenException {
+        long myId = jwtUtils.getUserId(token);
+        Pageable pageable;
+        if(input.getPageSize()==null||input.getPageNumber()==null|| input.getPageNumber()<0|| input.getPageSize()<1){
+            pageable =Pageable.unpaged();
+        }else {
+            pageable = PageRequest.of(input.getPageNumber(), input.getPageSize());
+        }
+        return postFilterRepository.searchPost(input,myId,pageable);
+
+    }
+
 
 
     /**

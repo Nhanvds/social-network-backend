@@ -1,7 +1,8 @@
-package com.project.socialnetwork.service;
+package com.project.socialnetwork.service.impl;
 
 import com.project.socialnetwork.entity.VerificationToken;
 import com.project.socialnetwork.repository.VerificationTokenRepository;
+import com.project.socialnetwork.service.VerificationTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class VerificationTokenServiceImpl implements VerificationTokenService{
+public class VerificationTokenServiceImpl implements VerificationTokenService {
     private final VerificationTokenRepository verificationTokenRepository;
     @Value("${verification.token.expiration}")
     private int expiration;

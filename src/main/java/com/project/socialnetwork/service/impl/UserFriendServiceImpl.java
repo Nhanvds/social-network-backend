@@ -1,4 +1,4 @@
-package com.project.socialnetwork.service;
+package com.project.socialnetwork.service.impl;
 
 import com.project.socialnetwork.components.JwtUtils;
 import com.project.socialnetwork.entity.User;
@@ -8,6 +8,7 @@ import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.repository.UserFriendRepository;
 import com.project.socialnetwork.repository.UserRepository;
 import com.project.socialnetwork.response.ListFriendResponse;
+import com.project.socialnetwork.service.UserFriendService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UserFriendServiceImpl implements UserFriendService{
+public class UserFriendServiceImpl implements UserFriendService {
     private final UserRepository userRepository;
     private final UserFriendRepository userFriendRepository;
     private final JwtUtils jwtUtils;
@@ -44,18 +45,18 @@ public class UserFriendServiceImpl implements UserFriendService{
        userFriendRepository.delete(userFriend);
     }
 
-    @Override
-    public ListFriendResponse getFriends(String keyword,Boolean hasAccepted, Pageable pageable, String token) throws ParserTokenException {
-
-            Long userId = jwtUtils.getUserId(token);
-            Page<Long> friendIds = userFriendRepository.getUserFriendIds(userId,keyword,hasAccepted,pageable);
-            List<UserFriend> friendList = userFriendRepository.getUserFriends(friendIds.toList());
-            return ListFriendResponse.builder()
-                    .total(friendIds.getTotalElements())
-                    .friends(friendList)
-                    .build();
-
-    }
+//    @Override
+//    public ListFriendResponse getFriends(String keyword,Boolean hasAccepted, Pageable pageable, String token) throws ParserTokenException {
+//
+//            Long userId = jwtUtils.getUserId(token);
+//            Page<Long> friendIds = userFriendRepository.getUserFriendIds(userId,keyword,hasAccepted,pageable);
+//            List<UserFriend> friendList = userFriendRepository.getUserFriends(friendIds.toList());
+//            return ListFriendResponse.builder()
+//                    .total(friendIds.getTotalElements())
+//                    .friends(friendList)
+//                    .build();
+//
+//    }
 
 
 
@@ -69,6 +70,7 @@ public class UserFriendServiceImpl implements UserFriendService{
             UserFriend userFriend = UserFriend.builder()
                     .firstUser(myUser)
                     .secondUser(friendUser)
+                    .hasAccepted(false)
                     .build();
             return userFriend;
 

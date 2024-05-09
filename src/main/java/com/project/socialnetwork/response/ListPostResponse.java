@@ -13,6 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 public class ListPostResponse {
     private Long total;
-
     private List<PostResponse> postResponseList;
 }

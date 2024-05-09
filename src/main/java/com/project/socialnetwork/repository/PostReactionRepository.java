@@ -4,6 +4,7 @@ import com.project.socialnetwork.entity.PostReaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -37,4 +38,17 @@ public interface PostReactionRepository extends JpaRepository<PostReaction,Long>
 
     @Override
     Optional<PostReaction> findById(Long id);
+
+    @Query("""
+        select pr from PostReaction pr
+        where pr.user.id =:userId and pr.post.id = :postId
+""")
+    Optional<PostReaction> findIdByUserIdAndPostId(@Param("userId") Long userId,@Param("postId") Long postId);
+
+    @Modifying
+    @Query("""
+    delete from PostReaction  pr where pr.id=:id
+""")
+    void deleteById(@Param("id") Long id);
+
 }

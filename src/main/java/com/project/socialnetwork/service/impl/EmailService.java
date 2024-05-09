@@ -1,4 +1,4 @@
-package com.project.socialnetwork.service;
+package com.project.socialnetwork.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

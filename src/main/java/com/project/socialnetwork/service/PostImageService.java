@@ -5,5 +5,5 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface PostImageService {
-    String uploadImage(MultipartFile file);
+    List<String> uploadImage(List<MultipartFile> files);
 }

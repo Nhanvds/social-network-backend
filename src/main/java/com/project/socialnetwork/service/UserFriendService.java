@@ -10,5 +10,4 @@ public interface UserFriendService {
     UserFriend addUserFriend(Long userFriendId,String token) throws ParserTokenException;
     UserFriend acceptFriend(Long userFriendId);
     void deleteUserFriend(Long userFriendId, String token) throws ParserTokenException;
-    ListFriendResponse getFriends(String keyword,Boolean hasAcceted, Pageable pageable, String token) throws ParserTokenException;
 }

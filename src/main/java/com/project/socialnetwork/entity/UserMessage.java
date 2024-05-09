@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -31,7 +32,7 @@ public class UserMessage {
 
     @Column(name = "send_at")
     @CreationTimestamp
-    private LocalDate sendAt;
+    private LocalDateTime sendAt;
 
     @Column(name="content")
     private String content;
