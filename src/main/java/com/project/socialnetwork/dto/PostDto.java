@@ -17,6 +17,8 @@ public class PostDto {
 
     private Long postPrivacyStatusId;
 
+    private String postPrivacyName;
+
     private Set<String> urlPostImages;
 
 

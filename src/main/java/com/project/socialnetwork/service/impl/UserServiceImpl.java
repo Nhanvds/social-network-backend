@@ -8,14 +8,12 @@ import com.project.socialnetwork.dto.filter.PageFilterDto;
 import com.project.socialnetwork.dto.filter.UserFilerDto;
 import com.project.socialnetwork.entity.Role;
 import com.project.socialnetwork.entity.User;
-import com.project.socialnetwork.entity.UserFriend;
 import com.project.socialnetwork.entity.VerificationToken;
 import com.project.socialnetwork.enums.ErrorCode;
 import com.project.socialnetwork.exception.InvalidCredentialsException;
 import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.mapper.Mapper;
 import com.project.socialnetwork.repository.RoleRepository;
-import com.project.socialnetwork.repository.UserFriendRepository;
 import com.project.socialnetwork.repository.UserRepository;
 import com.project.socialnetwork.repository.custom.UserFilterRepository;
 import com.project.socialnetwork.response.Token;
@@ -30,10 +28,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,13 +41,13 @@ import java.util.Set;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserFilterRepository userFilterRepository;
-    private final UserFriendRepository userFriendRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenService verificationTokenService;
     private final JwtCreate jwtCreate;
     private final JwtUtils jwtUtils;
     private final EmailService emailService;
+    private String defaultAvatar = "https://res.cloudinary.com/draknr12v/image/upload/v1711188334/wlqmuizwtnfnrnnlqojk.jpg";
 
     @Override
     public UserDetailResponse createUser(UserDto userDTO) throws InvalidCredentialsException {
@@ -61,6 +61,7 @@ public class UserServiceImpl implements UserService {
         roles.add(userRole);
         User user = Mapper.mapToUser(userDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setUrlAvatar(defaultAvatar);
         user.setRoles(roles);
         user.setIsLocked(false);
         User addedUser = userRepository.save(user);
@@ -71,9 +72,13 @@ public class UserServiceImpl implements UserService {
     public Token login(UserDto userDTO) throws InvalidCredentialsException, JOSEException {
         User user = userRepository.getUserByEmail(userDTO.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.EMAIL_PASSWORD_WRONG));
+
         String password = userDTO.getPassword();
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new InvalidCredentialsException(ErrorCode.EMAIL_PASSWORD_WRONG);
+        }
+        if(user.getIsLocked()==true){
+            throw new RuntimeException("Tài khoản bị khóa");
         }
         String token = jwtCreate.generateToken(user);
         return Token.builder()
@@ -84,7 +89,7 @@ public class UserServiceImpl implements UserService {
     public boolean verifyUser(String verificationToken, Long userId) throws InvalidCredentialsException {
         User user = userRepository.getUserById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
-//        String message = new String("Xác thực tài khoản thất bại!");
+
         VerificationToken existingVerificationToken = verificationTokenService.getTokenByUserId(userId);
         if (LocalDateTime.now().isAfter(existingVerificationToken.getExpiredAt())
                 || !existingVerificationToken.getToken().equals(verificationToken)) {
@@ -123,39 +128,79 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageImpl<UserCard> searchUser(PageFilterDto<UserFilerDto> input,String token) throws ParserTokenException {
+    public UserDetailResponse getUserDetailById(Long userId) throws InvalidCredentialsException {
+        User user = userRepository.getUserById(userId)
+                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        return Mapper.mapToUserDetailResponse(user);
+    }
+
+    @Override
+    public PageImpl<UserDetailResponse> searchUser(PageFilterDto<UserFilerDto> input,String token) throws ParserTokenException {
         Long userId = jwtUtils.getUserId(token);
-        Pageable pageable;
-        if (input.getPageSize() == null || input.getPageNumber() == null
-                || input.getPageNumber() < 0 || input.getPageSize() <= 0) {
-            pageable = Pageable.unpaged();
-        } else {
-            pageable = PageRequest.of(input.getPageNumber(), input.getPageSize());
-        }
+        Pageable pageable=input.getPageable();
         return userFilterRepository.searchUser(input, pageable,userId);
     }
 
-
     @Override
-    public void sendFriendRequest(String token, Long userFriendId) throws ParserTokenException, InvalidCredentialsException {
-        Long userId = jwtUtils.getUserId(token);
-        User user = userRepository.getUserById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
-        User friend = userRepository.getUserById(userFriendId)
-                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
-        UserFriend userFriend = UserFriend.builder()
-                .firstUser(user)
-                .secondUser(friend)
-                .hasAccepted(false)
-                .build();
-        userFriendRepository.save(userFriend);
+    public PageImpl<UserCard> getAllUsers(Integer page, Integer limit, String commonSearch, Boolean asc, String sortProperty) {
+        Pageable pageable = PageRequest.of(page,limit);
+        return userFilterRepository.getAllUser(pageable,commonSearch,asc,sortProperty);
     }
 
     @Override
-    public void acceptFriendRequest(Long friendRequestId) throws InvalidCredentialsException {
-        UserFriend userFriend = userFriendRepository.getUserFriendById(friendRequestId)
-                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.FRIEND_REQUEST_NOT_EXISTED));
-        userFriend.setHasAccepted(true);
-        userFriendRepository.save(userFriend);
+    public void updateUserByAdmin(UserDetailResponse user) throws InvalidCredentialsException {
+        User existedUser = userRepository.getUserById(user.getId())
+                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        existedUser.setRoles(user.getRoles().stream().collect(Collectors.toSet()));
+        existedUser.setIsLocked(user.getLocked());
+        userRepository.save(existedUser);
+    }
+
+    @Override
+    public void updateUser(Long id, String token, UserDto user) throws InvalidCredentialsException, ParserTokenException {
+        User existedUser = userRepository.getUserById(id)
+                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        Long userId = this.jwtUtils.getUserId(token);
+        if(existedUser.getId()!=userId){
+            throw new InvalidCredentialsException(ErrorCode.FAIL);
+        }
+        if(!StringUtils.isEmpty(user.getPassword())){
+            existedUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        existedUser.setUserName(user.getUsername());
+        existedUser.setDescription(user.getDescription());
+        if(user.getUrlAvatar()!=null){
+            existedUser.setUrlAvatar(user.getUrlAvatar());
+        }
+        userRepository.save(existedUser);
+    }
+    @Override
+    public void updatePassword(String token, UserDto user) throws InvalidCredentialsException, ParserTokenException {
+        User existedUser = userRepository.getUserById(user.getId())
+                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        String existedToken = verificationTokenService.getTokenByUserId(user.getId()).getToken();
+        if(!existedToken.equalsIgnoreCase(token)){
+            throw new RuntimeException("Mã xác thực không đúng");
+        }
+        if(!StringUtils.isEmpty(user.getPassword())){
+            existedUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        userRepository.save(existedUser);
+    }
+
+    @Override
+    public void checkPassword(Long userId, String password) throws InvalidCredentialsException {
+        User existedUser = userRepository.getUserById(userId)
+                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        if(!passwordEncoder.matches(password.trim(),existedUser.getPassword())){
+            throw new RuntimeException("Mật khẩu không khớp");
+        }
+    }
+
+    @Override
+    public UserDetailResponse getUserDetailByEmail(String email) throws InvalidCredentialsException {
+        User user = userRepository.getUserByEmail(email)
+                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        return Mapper.mapToUserDetailResponse(user);
     }
 }

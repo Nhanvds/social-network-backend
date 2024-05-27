@@ -1,6 +1,7 @@
 package com.project.socialnetwork.response;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,9 @@ public class PostResponse {
 
     private LocalDateTime updatedTime;
 
+    @JsonProperty("isLocked")
+    private Boolean isLocked;
+
     private Long userId;
 
     private String username;
@@ -40,12 +44,13 @@ public class PostResponse {
     public PostResponse() {
     }
 
-    public PostResponse(Long id, String content, String postPrivacyStatus, LocalDateTime createdTime, LocalDateTime updatedTime, Long userId, String username, String urlAvatar, List<String> postImages, Integer likedReactions, Integer dislikedReactions, Boolean hasLiked, Boolean hasDisLiked) {
+    public PostResponse(Long id, String content, String postPrivacyStatus, LocalDateTime createdTime, LocalDateTime updatedTime, Boolean isLocked, Long userId, String username, String urlAvatar, List<String> postImages, Integer likedReactions, Integer dislikedReactions, Boolean hasLiked, Boolean hasDisLiked) {
         this.id = id;
         this.content = content;
         this.postPrivacyStatus = postPrivacyStatus;
         this.createdTime = createdTime;
         this.updatedTime = updatedTime;
+        this.isLocked = isLocked;
         this.userId = userId;
         this.username = username;
         this.urlAvatar = urlAvatar;
@@ -62,6 +67,14 @@ public class PostResponse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Boolean getLocked() {
+        return isLocked;
+    }
+
+    public void setLocked(Boolean locked) {
+        isLocked = locked;
     }
 
     public String getContent() {

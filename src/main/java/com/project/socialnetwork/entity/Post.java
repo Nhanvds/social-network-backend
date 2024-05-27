@@ -48,7 +48,5 @@ public class Post {
     @OneToMany(mappedBy = "post",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private Set<PostReaction> postReactions;
 
-    @OneToMany(mappedBy = "post",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    private Set<PostUserStatus> postUserStatuses;
 
 }

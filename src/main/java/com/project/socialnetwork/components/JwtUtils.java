@@ -18,10 +18,10 @@ public class JwtUtils {
     private String secretKey;
 
     public SignedJWT decodedJWT(String token) throws ParserTokenException {
-        try{
+        try {
             token = token.substring(7);
             return SignedJWT.parse(token);
-        }catch (ParseException ex){
+        } catch (ParseException ex) {
             throw new ParserTokenException();
         }
 
@@ -39,11 +39,11 @@ public class JwtUtils {
     }
 
     public String getEmail(String token) throws ParserTokenException {
-        try{
+        try {
             SignedJWT decodedJWT = decodedJWT(token);
             String email = decodedJWT.getJWTClaimsSet().getSubject();
             return email;
-        }catch (ParseException ex){
+        } catch (ParseException ex) {
             throw new ParserTokenException();
         }
 

@@ -26,11 +26,11 @@ public class CommentController {
     public ResponseEntity<?> createPostComment(
             @RequestBody PostCommentDto postCommentDTO,
             @RequestHeader("Authorization") String token
-            ) throws ParserTokenException {
+    ) throws ParserTokenException {
         PostCommentResponse postCommentResponse = postCommentService.createPostComment(
-                postCommentDTO,token
+                postCommentDTO, token
         );
-        return ResponseEntity.ok().body(new ApiResponse<PostCommentResponse>("success",postCommentResponse) );
+        return ResponseEntity.ok().body(new ApiResponse<PostCommentResponse>("success", postCommentResponse));
     }
 
     @DeleteMapping("/{comment_id}")
@@ -38,28 +38,28 @@ public class CommentController {
             @PathVariable("comment_id") Long id,
             @RequestHeader("Authorization") String token
     ) throws ParserTokenException {
-        postCommentService.deletePostComment(id,token);
+        postCommentService.deletePostComment(id, token);
         return ResponseEntity.ok().body(new ApiResponse("success"));
     }
 
     @GetMapping("/{post_id}")
     public ResponseEntity<?> getPostComments(
-            @PathVariable("post_id")Long postId,
+            @PathVariable("post_id") Long postId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int limit,
-            @RequestParam(name = "asc",defaultValue = "false") boolean asc
-    ){
+            @RequestParam(name = "asc", defaultValue = "false") boolean asc
+    ) {
         PageRequest pageRequest;
-        if(asc==true){
-            pageRequest= PageRequest.of(page,limit,
+        if (asc == true) {
+            pageRequest = PageRequest.of(page, limit,
                     Sort.by("createdAt").ascending());
-        }else {
-             pageRequest = PageRequest.of(page,limit,
+        } else {
+            pageRequest = PageRequest.of(page, limit,
                     Sort.by("createdAt").descending());
         }
 
         return ResponseEntity.ok().body(
-                new ApiResponse<PageImpl<PostCommentResponse>>("success",postCommentService.getPostComments(postId,pageRequest))
+                new ApiResponse<PageImpl<PostCommentResponse>>("success", postCommentService.getPostComments(postId, pageRequest))
         );
     }
 }

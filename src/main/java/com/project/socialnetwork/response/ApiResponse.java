@@ -27,6 +27,10 @@ public class ApiResponse <T>{
         this.code=errorCode.getCode();
         this.message=errorCode.getMessage();
     }
+    public ApiResponse(Boolean success,String message){
+        this.success=success;
+        this.message=message;
+    }
 
 
 }

@@ -40,7 +40,6 @@ public class User {
     @Column(name = "is_locked",nullable = false)
     private Boolean isLocked;
 
-
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
@@ -54,24 +53,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
-//    @ManyToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-//    @JoinTable(
-//        name = "user_friends",
-//        joinColumns = @JoinColumn(name = "first_user_id"),
-//        inverseJoinColumns = @JoinColumn(name = "second_user_id")
-//    )
-//    private Set<User> userFriends;
 
-    @OneToMany(mappedBy = "user",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    private Set<PostNotification> postNotifications;
-
-    @ManyToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "conversations",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_conversation_id")
-    )
-    private Set<UserConversation> userConversations;
 
 
 }

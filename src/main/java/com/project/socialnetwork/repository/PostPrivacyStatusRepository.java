@@ -11,6 +11,8 @@ public interface PostPrivacyStatusRepository extends JpaRepository<PostPrivacySt
 
     Optional<PostPrivacyStatus> getPostPrivacyStatusById(Long id);
 
+    Optional<PostPrivacyStatus> getPostPrivacyStatusByName(String name);
+
     @Query("select pp from PostPrivacyStatus pp ")
     List<PostPrivacyStatus> getAllPostPrivacyStatus();
 }

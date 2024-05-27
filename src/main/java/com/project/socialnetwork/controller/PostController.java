@@ -44,11 +44,6 @@ public class PostController {
         return ResponseEntity.ok().body(new ApiResponse<PostDetailResponse>("success", postDetailResponse));
     }
 
-    @GetMapping("/{post_id}")
-    public ResponseEntity<?> getPostById(@PathVariable("post_id") Long postId) {
-        PostDetailResponse postDetailResponse = postService.getPostDetailResponse(postId);
-        return ResponseEntity.ok().body(new ApiResponse<PostDetailResponse>("success", postDetailResponse));
-    }
 
     @PostMapping("/list")
     public ResponseEntity<?> searchPost(@RequestBody PageFilterDto<PostFilterDto> input,
@@ -56,6 +51,45 @@ public class PostController {
         return ResponseEntity.ok()
                 .body(new ApiResponse<PageImpl<PostResponse>>("ok", postService.searchPost(input, token)));
     }
+
+    /**
+     *
+     * @param page
+     * @param limit
+     * @param asc
+     * @param common
+     * @param hasLiked
+     * @param token
+     * @return danh sách bài viết của Người dùng đăng nhập và của bạn bè
+     * @throws ParserTokenException
+     */
+    @GetMapping("/list")
+    public ResponseEntity<?> getPostsInHome(
+            @RequestParam(name="page", defaultValue = "0") Integer page,
+            @RequestParam(name="limit", defaultValue = "10") Integer limit,
+            @RequestParam(name = "asc", defaultValue = "false") Boolean asc,
+            @RequestParam("common") String common,
+            @RequestParam("hasLiked") Boolean hasLiked,
+            @RequestHeader("Authorization") String token) throws ParserTokenException {
+        return ResponseEntity.ok()
+                .body(new ApiResponse<PageImpl<PostResponse>>("ok",
+                        postService.getPostsInHome(page, limit, asc, common, hasLiked, token)));
+    }
+
+    @GetMapping("/list/{userId}")
+    public ResponseEntity<?> getPostsByUserId(
+            @RequestParam(name="page", defaultValue = "0") Integer page,
+            @RequestParam(name="limit", defaultValue = "10") Integer limit,
+            @RequestParam(name = "asc", defaultValue = "false") Boolean asc,
+            @RequestParam("common") String common,
+            @RequestParam("hasLiked") Boolean hasLiked,
+            @PathVariable("userId") Long userId,
+            @RequestHeader("Authorization") String token) throws ParserTokenException {
+        return ResponseEntity.ok()
+                .body(new ApiResponse<PageImpl<PostResponse>>("ok",
+                        postService.getPostsByUserId(page, limit, userId, asc, token,common,hasLiked)));
+    }
+
 
     @PutMapping("/{postId}")
     public ResponseEntity<?> updatePost(@PathVariable("postId") Long id,
@@ -81,15 +115,13 @@ public class PostController {
                 .body(new ApiResponse("success"));
 
     }
-
     @PostMapping("/like")
     public ResponseEntity<?> createReaction(@RequestBody PostReactionDto postReactionDto,
                                             @RequestHeader("Authorization") String token) throws ParserTokenException {
-        postReactionService.createPostReaction(postReactionDto,token);
+        postReactionService.createPostReaction(postReactionDto, token);
         return ResponseEntity.ok()
                 .body(new ApiResponse("success"));
     }
-
 
     @DeleteMapping("/{portId}")
     public ResponseEntity<?> deletePost(
@@ -99,7 +131,13 @@ public class PostController {
         postService.deletePost(id, token);
         return ResponseEntity.ok().body(new ApiResponse("Xóa post thành công!"));
     }
-
+    @PutMapping("/{portId}/lock")
+    public ResponseEntity<?> lockPost(@PathVariable("portId") Long id,
+    @RequestBody Boolean isLocked){
+        postService.lockPost(id,isLocked);
+        return ResponseEntity.ok()
+                .body(new ApiResponse("Khoá post thành công!"));
+    }
     @GetMapping("/post-privacy")
     public ResponseEntity<?> getAllPostPrivacy() {
         List<PostPrivacyStatus> list = postPrivacyStatusService.getAllPostPrivacyStatus();
@@ -113,8 +151,6 @@ public class PostController {
         return ResponseEntity.ok()
                 .body(new ApiResponse<PostPrivacyStatus>("success", postPrivacyStatus));
     }
-
-
 
 
 }

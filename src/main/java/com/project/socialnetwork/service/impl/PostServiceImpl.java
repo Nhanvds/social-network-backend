@@ -21,23 +21,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
-    private final PostUserStatusRepository postUserStatusRepository;
-    private final PostUserStatusServiceImpl postUserStatusService;
     private final PostRepository postRepository;
-    private final PostReactionRepository postReactionRepository;
     private final UserRepository userRepository;
-    private final UserFriendRepository userFriendRepository;
     private final PostPrivacyStatusRepository postPrivacyStatusRepository;
     private final PostImageRepository postImageRepository;
     private final PostFilterRepository postFilterRepository;
     private final JwtUtils jwtUtils;
-
 
 
     @Override
@@ -73,7 +70,7 @@ public class PostServiceImpl implements PostService {
                 .isLocked(false)
                 .build();
         Post addedPost = postRepository.save(post);
-        if(postDTO.getUrlPostImages()!=null){
+        if (postDTO.getUrlPostImages() != null) {
             List<PostImage> postImages = new ArrayList<>();
             postDTO.getUrlPostImages().forEach(url ->
                     postImages.add(PostImage.builder()
@@ -85,9 +82,7 @@ public class PostServiceImpl implements PostService {
             addedPost.setPostImages(addedPostImages.stream().collect(Collectors.toSet()));
         }
 
-        if(addedPost.getPostPrivacyStatus().getName().equals(PostPrivacyStatus.PRIVACY_PUBLIC)){
-            postUserStatusService.createPostUserStatus(token,addedPost);
-        }
+
         return PostDetailResponse.builder()
                 .id(addedPost.getId())
                 .content(addedPost.getContent())
@@ -102,69 +97,82 @@ public class PostServiceImpl implements PostService {
 
     /**
      * Chỉ cho phép cập nhật tiêu đề hoặc chế độ chia sẻ bài viết
+     *
      * @return
      */
     @Override
-    public PostDetailResponse updatePost(Long postId,PostDto postDto) {
+    public void updatePost(Long postId, PostDto postDto) {
         Post existedPost = postRepository.getPostById(postId)
-                .orElseThrow(()-> new RuntimeException("Bài viết không ồn tại"));
+                .orElseThrow(() -> new RuntimeException("Bài viết không ồn tại"));
         PostPrivacyStatus postPrivacyStatus = postPrivacyStatusRepository
-                .getPostPrivacyStatusById(postDto.getPostPrivacyStatusId())
-                .orElseThrow(()->new RuntimeException("Chế độ bài viết không hợp lệ"));
+                .getPostPrivacyStatusByName(postDto.getPostPrivacyName())
+                .orElseThrow(() -> new RuntimeException("Chế độ bài viết không hợp lệ"));
         existedPost.setContent(postDto.getContent());
         existedPost.setPostPrivacyStatus(postPrivacyStatus);
+        postRepository.save(existedPost);
 
-        Post updatedPost =  postRepository.save(existedPost);
-        return PostDetailResponse.builder()
-                .id(updatedPost.getId())
-                .content(updatedPost.getContent())
-                .postPrivacyStatus(updatedPost.getPostPrivacyStatus())
-                .createdTime(updatedPost.getCreatedTime())
-                .updatedTime(updatedPost.getUpdatedTime())
-                .user(Mapper.mapToUserCard(updatedPost.getUser()))
-                .postImages(updatedPost.getPostImages())
-                .build();
     }
 
     @Override
     public void deletePost(Long id, String token) throws ParserTokenException {
 
-            Long userId = jwtUtils.getUserId(token);
-            User user = userRepository.getUserById(userId)
-                    .orElseThrow(() -> new RuntimeException("User không tồn tại!"));
-            Post post = postRepository.getPostById(id)
-                    .orElseThrow(() -> new RuntimeException("Post không tồn tại!"));
-            if (post.getUser().getId() != user.getId()) {
-                throw new RuntimeException("Không thể xóa bài viết!");
-            }
-            postRepository.deleteById(id);
+        Long userId = jwtUtils.getUserId(token);
+        User user = userRepository.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại!"));
+        Post post = postRepository.getPostById(id)
+                .orElseThrow(() -> new RuntimeException("Post không tồn tại!"));
+        if (post.getUser().getId() != user.getId()) {
+            throw new RuntimeException("Không thể xóa bài viết!");
+        }
+        post.setIsLocked(true);
+        postRepository.save(post);
 
     }
 
     @Override
+    public void lockPost(Long id,Boolean isLocked) {
+        Post post = postRepository.getPostById(id)
+                .orElseThrow(() -> new RuntimeException("Post không tồn tại!"));
+        post.setIsLocked(isLocked);
+        postRepository.save(post);
+    }
+
+    // ADMIN
+    @Override
     public PageImpl<PostResponse> searchPost(PageFilterDto<PostFilterDto> input, String token) throws ParserTokenException {
         long myId = jwtUtils.getUserId(token);
+        Pageable pageable=input.getPageable();
+        return postFilterRepository.searchPost(input, myId, pageable);
+
+    }
+
+    @Override
+    public PageImpl<PostResponse> getPostsInHome(Integer page, Integer limit, Boolean asc, String common, Boolean hasLiked, String token) throws ParserTokenException {
+        Long myId = jwtUtils.getUserId(token);
         Pageable pageable;
-        if(input.getPageSize()==null||input.getPageNumber()==null|| input.getPageNumber()<0|| input.getPageSize()<1){
-            pageable =Pageable.unpaged();
-        }else {
-            pageable = PageRequest.of(input.getPageNumber(), input.getPageSize());
+        if (page == null || limit == null || page < 0 || limit < 1) {
+            pageable = Pageable.unpaged();
+        } else {
+            pageable = PageRequest.of(page, limit);
         }
-        return postFilterRepository.searchPost(input,myId,pageable);
+        return postFilterRepository.getPostsInHome(pageable, myId, asc, common, hasLiked);
+    }
+
+    @Override
+    public PageImpl<PostResponse> getPostsByUserId(Integer page, Integer limit,
+                                                   Long userId, Boolean asc, String token, String common, Boolean hasLiked)
+            throws ParserTokenException {
+        Long myId = jwtUtils.getUserId(token);
+        Pageable pageable;
+        if (page == null || limit == null || page < 0 || limit < 1) {
+            pageable = Pageable.unpaged();
+        } else {
+            pageable = PageRequest.of(page, limit);
+        }
+        return postFilterRepository.getPostsByUserId(pageable, myId, userId, asc, common, hasLiked);
+
 
     }
 
-
-
-    /**
-     * @ids: danh sách id của các post
-     */
-    private ListPostResponse convertToListPostResponse(Page<Long> ids) {
-        List<Post> postList = postRepository.getPostsByIds(ids.toList());
-        return ListPostResponse.builder()
-                .total(ids.getTotalElements())
-                .postResponseList(postList.stream().map(post -> Mapper.mapToPostResponse(post)).toList())
-                .build();
-    }
 
 }

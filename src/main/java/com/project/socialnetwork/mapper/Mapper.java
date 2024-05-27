@@ -1,6 +1,5 @@
 package com.project.socialnetwork.mapper;
 
-import com.project.socialnetwork.dto.NotificationDto;
 import com.project.socialnetwork.dto.UserDto;
 import com.project.socialnetwork.entity.*;
 import com.project.socialnetwork.response.*;
@@ -15,8 +14,10 @@ public class Mapper {
                 .email(userDTO.getEmail())
                 .userName(userDTO.getUsername())
                 .password(userDTO.getPassword())
+                .urlAvatar(userDTO.getUrlAvatar())
                 .build();
     }
+
 
 
     // map from entity to response
@@ -28,8 +29,7 @@ public class Mapper {
                 .urlAvatar(user.getUrlAvatar())
                 .description(user.getDescription())
                 .isLocked(user.getIsLocked())
-                .lastLogin(user.getLastLogin())
-                .roles(user.getRoles())
+                .roles(user.getRoles().stream().toList())
                 .build();
     }
 
@@ -75,15 +75,7 @@ public class Mapper {
                 .build();
     }
 
-    public static NotificationResponse mapToNotificationResponse(PostNotification notification){
-        return NotificationResponse.builder()
-                .id(notification.getId())
-                .content(notification.getContent())
-                .postId(notification.getPost().getId())
-                .sendedAt(notification.getSendedAt())
-                .hasRead(notification.getHasRead())
-                .build();
-    }
+
 
 
 

@@ -25,18 +25,18 @@ public class JwtCreate {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         StringJoiner roles = new StringJoiner(" ");
         user.getRoles().forEach(role -> roles.add(role.getRoleName()));
-        JWTClaimsSet jwtClaimsSet =new JWTClaimsSet.Builder()
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(email)
                 .issuer("issuer_vdn")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        System.currentTimeMillis()+expiration
+                        System.currentTimeMillis() + expiration
                 ))
-                .claim("user_id",userId)
-                .claim("scope",roles.toString())
+                .claim("user_id", userId)
+                .claim("scope", roles.toString())
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-        JWSObject jwsObject = new JWSObject(header,payload);
+        JWSObject jwsObject = new JWSObject(header, payload);
         jwsObject.sign(new MACSigner(secretKey.getBytes()));
         return jwsObject.serialize();
     }

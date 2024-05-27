@@ -10,7 +10,7 @@ import java.util.Map;
 @Configuration
 public class CloudinaryConfig {
     @Bean
-    public Cloudinary getCloudinary(){
+    public Cloudinary getCloudinary() {
         Map config = new HashMap();
         config.put("cloud_name", "dmups2mbv");
         config.put("api_key", "159594598732163");

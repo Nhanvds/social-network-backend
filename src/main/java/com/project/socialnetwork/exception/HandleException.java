@@ -16,14 +16,13 @@ public class HandleException {
 
     @ExceptionHandler({RuntimeException.class})
     public ResponseEntity<?> handleRuntimeException(RuntimeException e){
-        return ResponseEntity.badRequest().body(new ApiResponse(ErrorCode.FAIL));
+        return ResponseEntity.ok().body(new ApiResponse(false,e.getMessage()));
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
-        return ResponseEntity.badRequest()
+        return ResponseEntity.ok()
                 .body(new ApiResponse(ErrorCode.INFO_REGISTER_FAILED));
-
     }
     @ExceptionHandler({InvalidCredentialsException.class})
     public ResponseEntity<?> handleInvalidCredentialsException(InvalidCredentialsException ex){

@@ -16,7 +16,11 @@ public class PostFilterDto {
 
     private Long userId;
 
+    private Long postId;
+
     private Boolean isLocked;
+
+    private Boolean postPrivacy;
 
     private LocalDateTime createdTimeFrom;
 

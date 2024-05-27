@@ -23,9 +23,15 @@ public interface UserService {
     boolean sendEmail(String email) throws  InvalidCredentialsException;
     UserDetailResponse getUserDetailByToken(String token ) throws ParseException, InvalidCredentialsException, ParserTokenException;
 
-    PageImpl<UserCard> searchUser(PageFilterDto<UserFilerDto> input,String token) throws ParserTokenException;
+    UserDetailResponse getUserDetailById(Long userId) throws InvalidCredentialsException;
 
-    void sendFriendRequest(String token, Long userFriendId) throws ParserTokenException, InvalidCredentialsException;
+    UserDetailResponse getUserDetailByEmail(String email) throws InvalidCredentialsException;
+    PageImpl<UserDetailResponse> searchUser(PageFilterDto<UserFilerDto> input,String token) throws ParserTokenException;
 
-    void acceptFriendRequest(Long friendRequestId) throws InvalidCredentialsException;
+    PageImpl<UserCard> getAllUsers(Integer page, Integer limit, String commonSearch, Boolean asc, String sortProperty);
+
+    void updateUserByAdmin(UserDetailResponse user) throws InvalidCredentialsException;
+    void updateUser(Long id,String token, UserDto user) throws InvalidCredentialsException, ParserTokenException;
+    void updatePassword(String token, UserDto user) throws InvalidCredentialsException, ParserTokenException;
+    void checkPassword(Long userId, String password) throws InvalidCredentialsException;
 }

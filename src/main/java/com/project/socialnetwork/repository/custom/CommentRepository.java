@@ -3,6 +3,7 @@ package com.project.socialnetwork.repository.custom;
 import com.project.socialnetwork.response.PostCommentResponse;
 import com.project.socialnetwork.response.UserCard;
 import lombok.RequiredArgsConstructor;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
@@ -36,6 +37,9 @@ public class CommentRepository {
                 .where(POST_COMMENTS.POST_ID.eq(postId))
                 .getQuery()
                 ;
+        Condition condition = DSL.noCondition();
+        condition = condition.and(USERS.IS_LOCKED.eq(false));
+        selectQuery.addConditions(condition);
         long totalCount = selectQuery.stream().count();
         if(pageable.isPaged()){
             Sort sort = pageable.getSort();
