@@ -9,21 +9,17 @@ import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.mapper.Mapper;
 import com.project.socialnetwork.repository.*;
 import com.project.socialnetwork.repository.custom.PostFilterRepository;
-import com.project.socialnetwork.response.ListPostResponse;
 import com.project.socialnetwork.response.PostDetailResponse;
 import com.project.socialnetwork.response.PostResponse;
 import com.project.socialnetwork.service.PostService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

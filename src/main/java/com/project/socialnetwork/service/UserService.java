@@ -19,6 +19,8 @@ public interface UserService {
 
     UserDetailResponse createUser(UserDto userDTO) throws InvalidCredentialsException;
     Token login(UserDto userDTO) throws InvalidCredentialsException, JOSEException, ParseException;
+
+    Token refreshToken(String token, String refreshToken) throws ParserTokenException, InvalidCredentialsException, JOSEException;
     boolean verifyUser(String verificationToken, Long userId) throws ParseException, InvalidCredentialsException, ParserTokenException;
     boolean sendEmail(String email) throws  InvalidCredentialsException;
     UserDetailResponse getUserDetailByToken(String token ) throws ParseException, InvalidCredentialsException, ParserTokenException;

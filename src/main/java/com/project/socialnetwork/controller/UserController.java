@@ -43,6 +43,15 @@ public class UserController {
         return ResponseEntity.ok().body(new ApiResponse<Token>(SuccessCode.LOGIN_SUCCESSFULLY, token));
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(
+            @RequestHeader("accepttoken") String token,
+            @RequestHeader("refreshtoken") String refreshToken
+    ) throws InvalidCredentialsException, JOSEException, ParserTokenException {
+        return ResponseEntity.ok()
+                .body(new ApiResponse<>("ok",userService.refreshToken(token,refreshToken)));
+    }
+
     @GetMapping("")
     public ResponseEntity<?> getUserDetailByToken(
             @RequestHeader("Authorization") String token

@@ -11,15 +11,12 @@ import com.project.socialnetwork.repository.PostCommentRepository;
 import com.project.socialnetwork.repository.PostRepository;
 import com.project.socialnetwork.repository.UserRepository;
 import com.project.socialnetwork.repository.custom.CommentRepository;
-import com.project.socialnetwork.response.ListPostCommentResponse;
 import com.project.socialnetwork.response.PostCommentResponse;
 import com.project.socialnetwork.service.PostCommentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

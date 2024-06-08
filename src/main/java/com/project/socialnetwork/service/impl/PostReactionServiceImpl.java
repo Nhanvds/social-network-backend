@@ -10,8 +10,6 @@ import com.project.socialnetwork.mapper.Mapper;
 import com.project.socialnetwork.repository.PostReactionRepository;
 import com.project.socialnetwork.repository.PostRepository;
 import com.project.socialnetwork.repository.UserRepository;
-import com.project.socialnetwork.response.ListPostReactionsResponse;
-import com.project.socialnetwork.response.PostReactionResponse;
 import com.project.socialnetwork.service.PostReactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,18 +27,7 @@ public class PostReactionServiceImpl implements PostReactionService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
 
-    @Override
-    public ListPostReactionsResponse getReactionsByPostId(Long postId, Boolean hasLiked, Pageable pageable) {
-        Page<Long> ids = postReactionRepository.getPostReactionIdsByPostId(
-                postId, hasLiked, pageable
-        );
-        List<PostReaction> postReactions = postReactionRepository.getPagePostReaction(ids.toList());
-        return ListPostReactionsResponse.builder()
-                .total(ids.getTotalElements())
-                .postReactionResponseList(postReactions.stream()
-                        .map(postReaction -> Mapper.mapToPostReactionResponse(postReaction)).toList())
-                .build();
-    }
+
 
     @Override
     public void createPostReaction(PostReactionDto postReactionDTO, String token) throws ParserTokenException {

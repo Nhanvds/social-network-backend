@@ -4,11 +4,9 @@ import com.project.socialnetwork.dto.PostDto;
 import com.project.socialnetwork.dto.filter.PageFilterDto;
 import com.project.socialnetwork.dto.filter.PostFilterDto;
 import com.project.socialnetwork.exception.ParserTokenException;
-import com.project.socialnetwork.response.ListPostResponse;
 import com.project.socialnetwork.response.PostDetailResponse;
 import com.project.socialnetwork.response.PostResponse;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 public interface PostService {
 

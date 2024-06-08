@@ -8,7 +8,6 @@ import com.project.socialnetwork.dto.filter.PostFilterDto;
 import com.project.socialnetwork.entity.PostPrivacyStatus;
 import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.response.ApiResponse;
-import com.project.socialnetwork.response.ListPostResponse;
 import com.project.socialnetwork.response.PostDetailResponse;
 import com.project.socialnetwork.response.PostResponse;
 import com.project.socialnetwork.service.PostCommentService;
@@ -17,8 +16,6 @@ import com.project.socialnetwork.service.PostReactionService;
 import com.project.socialnetwork.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

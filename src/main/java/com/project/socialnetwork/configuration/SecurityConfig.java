@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -29,6 +30,7 @@ public class SecurityConfig {
         http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable())
                 .authorizeHttpRequests(request ->
                         request.requestMatchers(HttpMethod.POST,prefix+"/users/send").permitAll()
+                                .requestMatchers(HttpMethod.POST,prefix+"/users/refresh-token").permitAll()
                                 .requestMatchers(HttpMethod.POST,prefix+"/users/login").permitAll()
                                 .requestMatchers(HttpMethod.POST,prefix+"/users/register").permitAll()
                                 .requestMatchers(HttpMethod.POST,prefix+"/users/verification").permitAll()
@@ -55,6 +57,7 @@ public class SecurityConfig {
                 .build();
         return nimbusJwtDecoder;
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

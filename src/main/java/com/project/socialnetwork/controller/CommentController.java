@@ -3,8 +3,6 @@ package com.project.socialnetwork.controller;
 import com.project.socialnetwork.dto.PostCommentDto;
 import com.project.socialnetwork.exception.ParserTokenException;
 import com.project.socialnetwork.response.ApiResponse;
-import com.project.socialnetwork.response.ListPostCommentResponse;
-import com.project.socialnetwork.response.MessageResponse;
 import com.project.socialnetwork.response.PostCommentResponse;
 import com.project.socialnetwork.service.impl.PostCommentServiceImpl;
 import lombok.RequiredArgsConstructor;

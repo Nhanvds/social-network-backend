@@ -7,6 +7,8 @@ import com.project.socialnetwork.enums.ErrorCode;
 import com.project.socialnetwork.exception.ParserTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
@@ -14,6 +16,7 @@ import java.text.ParseException;
 @Component
 @RequiredArgsConstructor
 public class JwtUtils {
+    private final JwtDecoder jwtDecoder;
     @Value("${jwt.secretKey}")
     private String secretKey;
 
@@ -27,6 +30,7 @@ public class JwtUtils {
 
     }
 
+
     public Long getUserId(String token) throws ParserTokenException {
         try {
             SignedJWT decodedJWT = decodedJWT(token);
@@ -37,6 +41,9 @@ public class JwtUtils {
             throw new ParserTokenException();
         }
     }
+
+
+
 
     public String getEmail(String token) throws ParserTokenException {
         try {

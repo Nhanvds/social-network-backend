@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,12 +78,33 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new InvalidCredentialsException(ErrorCode.EMAIL_PASSWORD_WRONG);
         }
-        if(user.getIsLocked()==true){
+        if (user.getIsLocked() == true) {
             throw new RuntimeException("Tài khoản bị khóa");
+        }
+        if (user.getRefreshToken() == null) {
+            UUID refreshToken = UUID.randomUUID();
+            user.setRefreshToken(refreshToken.toString());
+            userRepository.save(user);
         }
         String token = jwtCreate.generateToken(user);
         return Token.builder()
-                .token(token).build();
+                .token(token)
+                .refreshToken(user.getRefreshToken()).build();
+    }
+
+    @Override
+    public Token refreshToken(String token, String refreshToken) throws ParserTokenException, InvalidCredentialsException, JOSEException {
+        Long userId = jwtUtils.getUserId(token);
+        User user = userRepository.getUserById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        if (!user.getRefreshToken().equals(refreshToken)) {
+            throw new RuntimeException("Refresh Token không hợp lệ");
+        }
+        String newToken = jwtCreate.generateToken(user);
+        return Token.builder()
+                .token(newToken)
+                .refreshToken(refreshToken).build();
+
     }
 
     @Override
@@ -130,27 +152,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetailResponse getUserDetailById(Long userId) throws InvalidCredentialsException {
         User user = userRepository.getUserById(userId)
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         return Mapper.mapToUserDetailResponse(user);
     }
 
     @Override
-    public PageImpl<UserDetailResponse> searchUser(PageFilterDto<UserFilerDto> input,String token) throws ParserTokenException {
+    public PageImpl<UserDetailResponse> searchUser(PageFilterDto<UserFilerDto> input, String token) throws ParserTokenException {
         Long userId = jwtUtils.getUserId(token);
-        Pageable pageable=input.getPageable();
-        return userFilterRepository.searchUser(input, pageable,userId);
+        Pageable pageable = input.getPageable();
+        return userFilterRepository.searchUser(input, pageable, userId);
     }
 
     @Override
     public PageImpl<UserCard> getAllUsers(Integer page, Integer limit, String commonSearch, Boolean asc, String sortProperty) {
-        Pageable pageable = PageRequest.of(page,limit);
-        return userFilterRepository.getAllUser(pageable,commonSearch,asc,sortProperty);
+        Pageable pageable = PageRequest.of(page, limit);
+        return userFilterRepository.getAllUser(pageable, commonSearch, asc, sortProperty);
     }
 
     @Override
     public void updateUserByAdmin(UserDetailResponse user) throws InvalidCredentialsException {
         User existedUser = userRepository.getUserById(user.getId())
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         existedUser.setRoles(user.getRoles().stream().collect(Collectors.toSet()));
         existedUser.setIsLocked(user.getLocked());
         userRepository.save(existedUser);
@@ -159,30 +181,31 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUser(Long id, String token, UserDto user) throws InvalidCredentialsException, ParserTokenException {
         User existedUser = userRepository.getUserById(id)
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         Long userId = this.jwtUtils.getUserId(token);
-        if(existedUser.getId()!=userId){
+        if (existedUser.getId() != userId) {
             throw new InvalidCredentialsException(ErrorCode.FAIL);
         }
-        if(!StringUtils.isEmpty(user.getPassword())){
+        if (!StringUtils.isEmpty(user.getPassword())) {
             existedUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         existedUser.setUserName(user.getUsername());
         existedUser.setDescription(user.getDescription());
-        if(user.getUrlAvatar()!=null){
+        if (user.getUrlAvatar() != null) {
             existedUser.setUrlAvatar(user.getUrlAvatar());
         }
         userRepository.save(existedUser);
     }
+
     @Override
     public void updatePassword(String token, UserDto user) throws InvalidCredentialsException, ParserTokenException {
         User existedUser = userRepository.getUserById(user.getId())
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         String existedToken = verificationTokenService.getTokenByUserId(user.getId()).getToken();
-        if(!existedToken.equalsIgnoreCase(token)){
+        if (!existedToken.equalsIgnoreCase(token)) {
             throw new RuntimeException("Mã xác thực không đúng");
         }
-        if(!StringUtils.isEmpty(user.getPassword())){
+        if (!StringUtils.isEmpty(user.getPassword())) {
             existedUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         userRepository.save(existedUser);
@@ -191,8 +214,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void checkPassword(Long userId, String password) throws InvalidCredentialsException {
         User existedUser = userRepository.getUserById(userId)
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
-        if(!passwordEncoder.matches(password.trim(),existedUser.getPassword())){
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+        if (!passwordEncoder.matches(password.trim(), existedUser.getPassword())) {
             throw new RuntimeException("Mật khẩu không khớp");
         }
     }
@@ -200,7 +223,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetailResponse getUserDetailByEmail(String email) throws InvalidCredentialsException {
         User user = userRepository.getUserByEmail(email)
-                .orElseThrow(()-> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.USER_NOT_EXISTED));
         return Mapper.mapToUserDetailResponse(user);
     }
 }
